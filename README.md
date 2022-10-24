@@ -1,3 +1,8 @@
+# Caveats
+* Current implementation is only suitable for networks whoes architecture is cleary divided into two named sections corresponding to a 
+convolutional and feed forward part
+* vgg16 ✔️
+* resnet18 ❌ 
 # Saliency maps in NIP
 
 In the following we discuss the Guided Backpropagation[^2] and Grad-CAM[^6] method for the generation of saliency maps. Here we use the term "saliency map" in a very broad sense for any kind of maps which highlight prediction relevant spatial features in the input data. The `nip` specific implementations via  `GradCAM()` and `GuidedBackprop()` are discussed below.

@@ -11,7 +11,7 @@ import torch
 
 
 # pylint: disable=inconsistent-return-statements
-def saliency(model, section_names=None, target_layer=None, method=None, mode="3D"):
+def saliency(model, section_names=None, target_layer=None, method=None, mode="3D", adaptive_layer=None):
     """ Wrapper for GradCAM, Guided Backpropagation and Guided GradCAM methods
 
     Parameters:
@@ -37,17 +37,21 @@ def saliency(model, section_names=None, target_layer=None, method=None, mode="3D
         method (str): Choose method from ["GradCAM", "GuidedBackprop", "GuidedGradCAM"]
         mode (str): Choose between "2D" and "3D" for two dimensional or three dimensional data respectively.
             Default:"3D"
+        adaptive_layer (string): Module which should be applied between the convolutional and fully connected part before flattening.
+            Example: Some models `torchvision.models utilize `AdaptiveAvgPool2D` to handle varying input image sizes. In standard torch
+            Resnet implementation, for example, the module is named "avgpool".
+            Default: None
 
     """
     methods = ["GradCAM", "GuidedBackprop", "GuidedGradCAM"]
     assert method in methods, "{} is not a valid method name. Choose one of {}".format(method, methods)
 
     if method == "GradCAM":
-        return GradCAM(model, target_layer, section_names, mode)
+        return GradCAM(model=model, target_layer=target_layer, section_names=section_names, mode=mode, adaptive_layer=adaptive_layer)
     elif method == "GuidedBackprop":
-        return GuidedBackprop(model, section_names)
+        return GuidedBackprop(model=model, section_names=section_names)
     elif method == "GuidedGradCAM":
-        return GuidedGradCAM(model, target_layer, section_names, mode)
+        return GuidedGradCAM(model=model, target_layer=target_layer, section_names=section_names, mode=mode, adaptive_layer=adaptive_layer)
 
 class GuidedBackprop():
     """ Class to generate Guided Backpropagation maps.
@@ -242,7 +246,8 @@ class _GradCamExtract():
         if self.adaptive_layer is not None:
             x = getattr(self.model, self.adaptive_layer)(x)
         x_shape = x.shape
-        x = x.view([x_shape[0], 1, -1])
+        #x = x.view([x_shape[0], 1, -1])
+        x = torch.reshape(x, (len(x), 1, -1))
 
         # move through fully connected layers
         for layer in self.classifier_layers:
@@ -453,7 +458,7 @@ class GuidedGradCAM():
         __call__(x, target_class=[], ignore_lastlayer = False) :
             Return network predictions and GuidedGradCAM maps of same dimension as x
     """
-    def __init__(self, model, target_layer=None, section_names=None, mode="3D"):
+    def __init__(self, model, target_layer=None, section_names=None, mode="3D", adaptive_layer=None):
         # assert that model is valid
         if section_names is None:
             section_names = [name for name, _ in model._modules.items()]
@@ -470,6 +475,7 @@ class GuidedGradCAM():
         self.classifier_name = section_names[1]
         self.model = model
         self.model.eval()
+        self.adaptive_layer= adaptive_layer
 
         # if target layer is not provided, use last layer of ConvBlock
         if target_layer is None:
@@ -491,7 +497,7 @@ class GuidedGradCAM():
             model_output(torch.Tensor): self.model predictions for x and target_class(es)
             cam(torch.Tensor): GuidedGradCAMs for x and target_class(es)
             """
-        CAM = GradCAM(model=self.model, target_layer=self.target_layer, section_names=[self.conv_name, self.classifier_name], mode=self.mode)
+        CAM = GradCAM(model=self.model, target_layer=self.target_layer, section_names=[self.conv_name, self.classifier_name], mode=self.mode, adaptive_layer=self.adaptive_layer)
         GBP = GuidedBackprop(self.model, [self.conv_name, self.classifier_name])
         pred, maps = CAM(x, target_class)
         _, gbp = GBP(x, target_class)
