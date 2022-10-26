@@ -4,7 +4,7 @@ from ipywidgets import interact, IntSlider
 import numpy as np
 import torch
 
-def saliency_plot(x, cam=None, alpha=0.5, scale=1.0, nrow=None, sl=None, show_cb=True, show_axis = True, save_fig=None, titles = None, mode="3D", interactive=False):
+def saliency_plot(x, cam=None, alpha=0.5, scale=1.0, nrow=None, sl=None, show_cb=True, show_axis = True, save_fig=None, titles = None, mode="3D", interactive=False, cmap = "viridis"):
     """ Plotting of batches and saliency maps.
 
     Parameters:
@@ -47,7 +47,7 @@ def saliency_plot(x, cam=None, alpha=0.5, scale=1.0, nrow=None, sl=None, show_cb
         if cam is not None:
             cam = torchvision.utils.make_grid(cam, nrow=nrow)
             cam = cam.detach().numpy()
-            plt.imshow(cam[0, :, :], cmap='viridis', alpha=alpha)
+            plt.imshow(cam[0, :, :], cmap=cmap, alpha=alpha)
             if show_cb:
                 im_ratio = cam.shape[0]/cam.shape[1]
                 plt.colorbar(fraction=0.046*im_ratio, pad=0.04)
@@ -70,7 +70,6 @@ def saliency_plot(x, cam=None, alpha=0.5, scale=1.0, nrow=None, sl=None, show_cb
             # make grid of size 1 x batchsize for plotting
             x_grid = torchvision.utils.make_grid(x, nrow=nrow)
             npimg = x_grid.detach().numpy()
-            cmap = None
             plt.imshow(np.transpose(npimg[:, sl, :, :], (1,2,0)), cmap=cmap)
             if not show_axis:
                 plt.axis("off")
@@ -81,7 +80,7 @@ def saliency_plot(x, cam=None, alpha=0.5, scale=1.0, nrow=None, sl=None, show_cb
                 ax = plt.subplot(1, 1+len(cam), j+2)
                 plt.imshow(np.transpose(npimg[:, sl, :, :], (1,2,0)), cmap=cmap)
                 cam_grid = torchvision.utils.make_grid(cam_j.squeeze(1), nrow=nrow)
-                plt.imshow(cam_grid.detach().numpy()[sl], cmap='Dark2', alpha=alpha)
+                plt.imshow(cam_grid.detach().numpy()[sl], cmap=cmap, alpha=alpha)
                 if show_cb:
                     im_ratio = cam_grid.shape[0]/cam_grid.shape[1]
                     plt.colorbar(fraction=len(cam)*0.047*im_ratio, pad=0.04)

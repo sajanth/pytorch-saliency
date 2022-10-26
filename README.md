@@ -1,3 +1,49 @@
+# pytorch-saliency
+|![](kittydoggo.gif)|
+|:--:| 
+|*Result of using `saliency(model=model, method="GradCAM")` with a ResNet18 model which was trained for **classification** on Imagenet. The model is queried for predictions for cats and dogs in the image and the respective returned class activation maps are shown.*|
+
+`pytorch-saliency` is a PyTorch based implementation of popular saliency mapping methods for 2D and 3D convolution based models. These are methods which allow you to better understand how your classification model arrives at a prediction by highlighting regions in your input space which are driving those predictions. Furthermore, such methods allow you to extract coarse segmentation maps from a model which was trained for classification alone!
+
+Currently included methods are 
+* GradCAM [^6]
+* Guided backpropagation [^2]
+* Guided GradCAM
+
+# Installation
+# Usage
+The general usage pattern consists of generating a `saliency(model, method)` object and then querying instances for predictions. A minimal example looks like the following
+````
+from saliency import saliency
+from utils import saliency_plot
+
+import torch
+import torchvision.transforms as T
+from PIL import Image
+
+#load pre-trained VGG16
+vgg16 = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+vgg16.eval()
+
+# prep data
+input_batch = torch.rand((1, 3, 224, 224)) # BCHW for 2D or BCDHW for 3D
+
+# group convolutional part, fc part and adaptive layer in between in vgg16; use print(model) to find model specific architectures in general
+conv_section = ['conv1', 'bn1', 'relu', 'maxpool', 'layer1', 'layer2', 'layer3', 'layer4']
+fc_section = ['fc']
+adaptive_layer = 'avgpool'
+
+# instantiate GradCAM and query for cat
+GradCAM = saliency(model=vgg16, method="GradCAM", mode="2D", section_names = [conv_section, fc_section], adaptive_layer=adaptive_layer)
+preds, maps = GradCAM(b, target_class=[281]) # target class corresponds to index in model output
+
+# plot original image with map overlayed
+saliency_plot(input_batch, maps, mode="2D", alpha=0.8)
+````
+
+For more detailed examples check out the following notebooks
+* 2D example
+* 3D example
 # Caveats
 * Current implementation is only suitable for networks whoes architecture is cleary divided into two named sections corresponding to a 
 convolutional and feed forward part
