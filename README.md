@@ -18,14 +18,13 @@ from saliency import saliency
 from utils import saliency_plot
 
 import torch
-import torchvision.transforms as T
-from PIL import Image
 
-#load pre-trained VGG16
+# load pre-trained VGG16
 vgg16 = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
 vgg16.eval()
 
 # prep data
+...
 input_batch = torch.rand((1, 3, 224, 224)) # BCHW for 2D or BCDHW for 3D
 
 # group convolutional part, fc part and adaptive layer in between in vgg16; use print(model) to find model specific architectures in general
@@ -35,20 +34,17 @@ adaptive_layer = 'avgpool'
 
 # instantiate GradCAM and query for cat
 GradCAM = saliency(model=vgg16, method="GradCAM", mode="2D", section_names = [conv_section, fc_section], adaptive_layer=adaptive_layer)
-preds, maps = GradCAM(b, target_class=[281]) # target class corresponds to index in model output
+preds, maps = GradCAM(input_batch, target_class=[281]) # target class corresponds to index in model output
 
 # plot original image with map overlayed
 saliency_plot(input_batch, maps, mode="2D", alpha=0.8)
 ````
 
 For more detailed examples check out the following notebooks
-* 2D example
+* [2D example](./examples/minimal_example.ipynb)
 * 3D example
-# Caveats
-* Current implementation is only suitable for networks whoes architecture is cleary divided into two named sections corresponding to a 
-convolutional and feed forward part
-* vgg16 ✔️
-* resnet18 ❌ 
+* Example from above GIF
+
 # Saliency maps in NIP
 
 In the following we discuss the Guided Backpropagation[^2] and Grad-CAM[^6] method for the generation of saliency maps. Here we use the term "saliency map" in a very broad sense for any kind of maps which highlight prediction relevant spatial features in the input data. The `nip` specific implementations via  `GradCAM()` and `GuidedBackprop()` are discussed below.
