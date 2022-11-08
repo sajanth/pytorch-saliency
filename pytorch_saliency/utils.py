@@ -4,7 +4,7 @@ from ipywidgets import interact, IntSlider
 import numpy as np
 import torch
 
-def saliency_plot(x, cam=None, alpha=0.5, scale=1.0, nrow=None, sl=None, show_cb=True, show_axis = True, save_fig=None, titles = None, mode="3D", interactive=False, cmap = "viridis"):
+def plot(x, cam=None, alpha=0.5, scale=1.0, nrow=None, sl=None, show_cb=True, show_axis = True, save_fig=None, titles = None, mode="3D", interactive=False, cmap = "viridis"):
     """ Plotting of batches and saliency maps.
 
     Parameters:

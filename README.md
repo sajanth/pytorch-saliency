@@ -1,5 +1,5 @@
 # pytorch-saliency
-|![](kittydoggo.gif)|
+|![](examples/kittydoggo.gif)|
 |:--:| 
 |*Result of using `saliency(model=model, method="GradCAM")` with a ResNet18 model which was trained for **classification** on Imagenet. The model is queried for predictions for cats and dogs in the image and the respective returned class activation maps are shown.*|
 
@@ -14,9 +14,7 @@ Currently included methods are
 # Usage
 The general usage pattern consists of generating a `saliency(model, method)` object and then querying instances for predictions. A minimal example looks like the following
 ````
-from saliency import saliency
-from utils import saliency_plot
-
+import pytorch_saliency as ps
 import torch
 
 # load pre-trained VGG16
@@ -33,11 +31,11 @@ fc_section = ['fc']
 adaptive_layer = 'avgpool'
 
 # instantiate GradCAM and query for cat
-GradCAM = saliency(model=vgg16, method="GradCAM", mode="2D", section_names = [conv_section, fc_section], adaptive_layer=adaptive_layer)
+GradCAM = ps.saliency(model=vgg16, method="GradCAM", mode="2D", section_names = [conv_section, fc_section], adaptive_layer=adaptive_layer)
 preds, maps = GradCAM(input_batch, target_class=[281]) # target class corresponds to index in model output
 
 # plot original image with map overlayed
-saliency_plot(input_batch, maps, mode="2D", alpha=0.8)
+ps.saliency_plot(input_batch, maps, mode="2D", alpha=0.8)
 ````
 
 For more detailed examples check out the following notebooks
