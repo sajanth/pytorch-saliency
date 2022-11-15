@@ -70,7 +70,9 @@ $$
 $$
 
 It turns out, however, that this leads to rather noisy results[^1] (see Figure below) which result from interference between positive and negative gradients during backpropagation. This problem is addressed by the Guided Backpropagation[^2] method (`ps.saliency(method="GuidedBackprop")`). The basic idea is that negative gradients are suppressed during backpropagation leading to very detailed maps of pixel importance.
+
 ![](docs/images/2022-11-15-14-13-59.png)
+
 Although both of these methods are based on backpropagation with respect to specific output layer neurons (corresponding to distinct classes) they are in fact *not* class discriminative. The reasons for this are not straight forward but related to the fact that instance-specific information is encoded in the network during the forward pass[^3] [^4].
 
 ## CAM and Grad-CAM
@@ -94,10 +96,13 @@ M^c(i,j) = \sum_k w^c_kA^k_{i,j}
 $$
 
 which in turn is put through a ReLU (we are only interested in positive contributions to the class) and then upscaled to input size.
+
 ![](docs/images/2022-11-15-14-27-42.png)
+
 The method shows very nice class differentiating properties. Note how the network even detects the ear of the fluffy dog behind the cats head!
 
 Finally, we can combine the Grad-CAM method and the Guided Backpropagation method to generate very detailed, class discriminative maps by combining the outputs of the two methods (`ps.saliency(method="GuidedGradCAM")`)
+
 ![](docs/images/2022-11-15-14-31-09.png)
 
 ## References
