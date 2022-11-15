@@ -10,8 +10,6 @@ Currently included methods are
 * Guided backpropagation [^2]
 * Guided GradCAM
 
-# Installation
-# Dependencies
 # Usage
 The general usage pattern consists of generating a `saliency(model, method)` object and then querying instances for predictions. A minimal example looks like the following
 ````
@@ -46,7 +44,6 @@ ps.saliency_plot(input_batch, maps, mode="2D", alpha=0.8)
 For more detailed examples check out the following notebooks
 * [2D example](./examples/minimal_example.ipynb)
 * 3D example
-* Example from above GIF
 
 # How can this be useful?
 * **Improve trust in your predictions:** By highlighting regions which are relevant for a prediction we can increase our trust in our model and its ability to generalize. 
