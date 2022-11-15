@@ -63,10 +63,12 @@ The question we want to answer is the following: given an output of a network, w
 
 ## Guided Backpropagation
 
-As a first approach one could try to find the most relevant modes in the input data by differentiating the network output for a specific class $`S_c`$ with respect to the input image $`x_0`$
+As a first approach one could try to find the most relevant modes in the input data by differentiating the network output for a specific class $S_c$ with respect to the input image $x_0$
+
 $$
  \frac{\partial S^c(x)}{\partial x_{i,j}}\Bigr\rvert_{x_0}
- $$
+$$
+
 It turns out, however, that this leads to rather noisy results[^1] (see Figure below) which result from interference between positive and negative gradients during backpropagation. This problem is addressed by the Guided Backpropagation[^2] method (`ps.saliency(method="GuidedBackprop")`). The basic idea is that negative gradients are suppressed during backpropagation leading to very detailed maps of pixel importance.
 ![](docs/images/2022-11-15-14-13-59.png)
 Although both of these methods are based on backpropagation with respect to specific output layer neurons (corresponding to distinct classes) they are in fact *not* class discriminative. The reasons for this are not straight forward but related to the fact that instance-specific information is encoded in the network during the forward pass[^3] [^4].
@@ -79,14 +81,18 @@ In order to find a method which is able to differentiate between classes one can
 
 It could be therefore argued that the output of the last convolutional layer holds most of the semantic and spatial information relevant for prediction. A method based on this idea is the Class activation mapping (CAM)[^5] method. The authors look at a CNN architecture without a fully connected part at the end but instead with a global average pooling layer. Each of the feature map in the final convolutional layer is thus reduced to a single value which in turn is directly coupled to the network output. Since every class has its unique set of weights for this last connection these weights can be interpreted as a importance weighting of the final feature maps. An upscaled, weighted average of the feature maps therefore gives as a class specific activation map.
 
-Although this quite simple approach yields very impressive results its shortcomings are rather severe. One has to sacrifice performance (no fully connected part) for interpretability and is restricted to a very specific class of architectures. A generalization of CAM which can be applied to arbitrary networks with a convolutional block without any re-training is a gradient based method called Grad-CAM (Gradient-weighted class activation maps)[^6] (`ps.saliency(method="GradCAM")`). The idea is similar to before but here one uses the averaged gradients of the final feature maps $`A^k_{x,y}`$ to compute class $`c`$ specific weights
+Although this quite simple approach yields very impressive results its shortcomings are rather severe. One has to sacrifice performance (no fully connected part) for interpretability and is restricted to a very specific class of architectures. A generalization of CAM which can be applied to arbitrary networks with a convolutional block without any re-training is a gradient based method called Grad-CAM (Gradient-weighted class activation maps)[^6] (`ps.saliency(method="GradCAM")`). The idea is similar to before but here one uses the averaged gradients of the final feature maps $A^k_{x,y}$ to compute class $c$ specific weights
+
 $$
 w^c_k \propto \sum_{i,j}\frac{\partial S^c}{\partial A^k_{i,j}}
 $$
+
 The class activation map is then given by
+
 $$
 M^c(i,j) = \sum_k w^c_kA^k_{i,j}
 $$
+
 which in turn is put through a ReLU (we are only interested in positive contributions to the class) and then upscaled to input size.
 ![](docs/images/2022-11-15-14-27-42.png)
 The method shows very nice class differentiating properties. Note how the network even detects the ear of the fluffy dog behind the cats head!
