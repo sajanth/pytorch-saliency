@@ -50,7 +50,10 @@ For more detailed examples check out the following notebooks
 
 # How can this be useful?
 * **Improve trust in your predictions:** By highlighting regions which are relevant for a prediction we can increase our trust in our model and its ability to generalize. 
-* **Detect biases in your training data:** Imagine a CNN which classifies between wolves and Huskies. One can imagine a scenario where the network reaches high accuracy but what might be actually happening is that the network looks at the presence of snow for its prediction. Without knowing anything about the inner workings of the network such biases might be difficult to detect when the evaluation of the network is solely based on conventional metrics like prediction accuracy.![](docs/images/2022-11-15-13-38-12.png)
+* **Detect biases in your training data:** Imagine a CNN which classifies between wolves and Huskies. One can imagine a scenario where the network reaches high accuracy but what might be actually happening is that the network looks at the presence of snow for its prediction. Without knowing anything about the inner workings of the network such biases might be difficult to detect when the evaluation of the network is solely based on conventional metrics like prediction accuracy.
+<p align="center">
+  <img src="docs/images/2022-11-15-13-38-12.png" width="300"/>
+</p>
 
 * **Human Learning:** In a scenario where a model outperforms humans in a task one can think of gaining deeper understanding or domain knowledge via the learned representation of the model
 * **Generate free segmentation maps:** Saliency methods can also be used to extract a coarse segmentation from a model which is solely trained on classification because the latter usually requires an internal representation of the former. 
@@ -71,7 +74,9 @@ $$
 
 It turns out, however, that this leads to rather noisy results[^1] (see Figure below) which result from interference between positive and negative gradients during backpropagation. This problem is addressed by the Guided Backpropagation[^2] method (`ps.saliency(method="GuidedBackprop")`). The basic idea is that negative gradients are suppressed during backpropagation leading to very detailed maps of pixel importance.
 
-![](docs/images/2022-11-15-14-13-59.png)
+<p align="center">
+  <img src="docs/images/2022-11-15-14-13-59.png" width="600"/>
+</p>
 
 Although both of these methods are based on backpropagation with respect to specific output layer neurons (corresponding to distinct classes) they are in fact *not* class discriminative. The reasons for this are not straight forward but related to the fact that instance-specific information is encoded in the network during the forward pass[^3] [^4].
 
@@ -97,13 +102,17 @@ $$
 
 which in turn is put through a ReLU (we are only interested in positive contributions to the class) and then upscaled to input size.
 
-![](docs/images/2022-11-15-14-27-42.png)
+<p align="center">
+  <img src="docs/images/2022-11-15-14-27-42.png" width="600"/>
+</p>
 
 The method shows very nice class differentiating properties. Note how the network even detects the ear of the fluffy dog behind the cats head!
 
 Finally, we can combine the Grad-CAM method and the Guided Backpropagation method to generate very detailed, class discriminative maps by combining the outputs of the two methods (`ps.saliency(method="GuidedGradCAM")`)
 
-![](docs/images/2022-11-15-14-31-09.png)
+<p align="center">
+  <img src="docs/images/2022-11-15-14-31-09.png" width="700"/>
+</p>
 
 ## References
 [^1]: Simonyan et al., *Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps*, 2013. [Arxiv](https://arxiv.org/pdf/1312.6034.pdf)
