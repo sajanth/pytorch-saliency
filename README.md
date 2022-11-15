@@ -15,7 +15,7 @@ Currently included methods are
 # Usage
 The general usage pattern consists of generating a `saliency(model, method)` object and then querying instances for predictions. A minimal example looks like the following
 ````
-import pytorch_saliency as ps
+import pytorch_saliency as psgit 
 import torch
 
 # load pre-trained VGG16
