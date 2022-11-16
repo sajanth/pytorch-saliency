@@ -2,15 +2,8 @@
 Methods for generating gradient-based class activation maps (GradCAM) and
 guided backpropagation maps.
 """
-##import matplotlib.pyplot as plt
-# pyling: disable=E0401
 import torch
-# pyling: disable=E0401
-#import torchvision
-#from ipywidgets import interact, IntSlider
 
-
-# pylint: disable=inconsistent-return-statements
 def saliency(model, section_names=None, target_layer=None, method=None, mode="3D", adaptive_layer=None):
     """ Wrapper for GradCAM, Guided Backpropagation and Guided GradCAM methods
 
@@ -74,7 +67,6 @@ class GuidedBackprop():
             Return network predictions and Guided Backpropagation maps of same dimension as x
     """
     def __init__(self, model, section_names=None):
-        # assert that model is valid
         if section_names is None:
             section_names = [name for name, _ in model._modules.items()]
 
@@ -99,11 +91,9 @@ class GuidedBackprop():
         # hook relu layers with modified gradients
         self._mod_relus()
 
-    # pylint: disable=unused-argument
     def _save_grads(self, module, grad_in, grad_out):
         self._grads = grad_in[0]
 
-    # pylint: disable=protected-access
     def _hook_input_layer(self):
         # save gradients of first layer during backprop
         first_layer = list(getattr(self.model, self.conv_name)._modules.items())[0][1]
@@ -114,16 +104,12 @@ class GuidedBackprop():
         Modify relu layers for forward and backward pass
         """
         # gradient values through relu are set to zero if gradient value is negative during backprop
-        # pylint: disable=unused-argument
         def backward_mod(module, grad_in, grad_out):
-            # take last forward outputs
             forward_output = self._forward_outputs[-1]
-            # since derivative of relu is 0,1 we have as a local gradient
-            forward_output[forward_output > 0] = 1
+            forward_output[forward_output > 0] = 1 #derivative of relu for x>0 is 1
             # the gradient at i is the local gradient times the incoming gradient from layer i+1
-            # The Guided backprop method consists of setting these incoming gradients to 0 where negative
+            # set these incoming gradients to 0 where negative
             mod_grad = forward_output * torch.max(grad_in[0], torch.zeros(grad_in[0].shape))
-            # delete last entry in _forward_outputs so we can repeat this procedure for the next layer i-1
             del self._forward_outputs[-1]
             return (mod_grad,)
 
@@ -131,7 +117,6 @@ class GuidedBackprop():
         def forward_mod(module, inp, out):
             self._forward_outputs.append(out)
 
-        # hook backward_mod and forward_mod at each relu layer
         for _, module in getattr(self.model, self.conv_name)._modules.items():
             if isinstance(module, torch.nn.modules.activation.ReLU):
                 module.register_backward_hook(backward_mod)
@@ -144,7 +129,6 @@ class GuidedBackprop():
         """
         for name, module in getattr(self.model, self.conv_name)._modules.items():
             x = module(x)
-        # move through fully connected layers
         x_shape = x.shape
         x = x.view([x_shape[0], 1, -1])
         for name, module in getattr(self.model, self.classifier_name)._modules.items():
@@ -227,7 +211,6 @@ class _GradCamExtract():
         target activation and model output x.
         """
         target_output = None
-        # move through Convolutional Layers, and save target_layer output
         for layer in self.conv_layers:
             if not getattr(self.model, layer)._modules.items():
                 x = getattr(self.model, layer)(x)
@@ -237,19 +220,15 @@ class _GradCamExtract():
             else:
                 for name, module in getattr(self.model, layer)._modules.items():
                     x = module(x)
-                    # if at target layer hook save_grads and save target output
                     if layer == self.target_layer[0] and name == self.target_layer[1]:
                         x.register_hook(self._save_grads)
                         target_output = x
 
-        # apply adaptive layer
         if self.adaptive_layer is not None:
             x = getattr(self.model, self.adaptive_layer)(x)
         x_shape = x.shape
-        #x = x.view([x_shape[0], 1, -1])
         x = torch.reshape(x, (len(x), 1, -1))
 
-        # move through fully connected layers
         for layer in self.classifier_layers:
             if not getattr(self.model, layer)._modules.items():
                 x = getattr(self.model, layer)(x)
@@ -318,7 +297,6 @@ class GradCAM():
         self.model = model
         self.model.eval()
 
-        # assert that model is valid
         if section_names is None:
             section_names = [[name] for name, _ in model._modules.items()]
 
@@ -389,12 +367,8 @@ class GradCAM():
             one_hot_class[i][categ] = 1
         one_hot_class = one_hot_class.unsqueeze(1)
 
-        # put gradients to zero
         self.model.zero_grad()
-
-        # backpropagate
         model_output.backward(gradient=one_hot_class, retain_graph=True)
-        # get gradients of target layer
         target_gradients = self._extractor._grads
 
         # compute weights for target outputs
@@ -402,7 +376,7 @@ class GradCAM():
             alpha = target_gradients.mean((-2, -1))
             cam = torch.zeros(target_output[:, 0, :, :].shape)
         else:
-            # take care of the cases where the target layer outputs are 2D
+            # handle case where the target layer outputs are 2D
             if len(target_gradients.shape) != 5:
                 target_gradients = target_gradients.unsqueeze(2)
 
@@ -414,13 +388,10 @@ class GradCAM():
             for i, weight in enumerate(alpha[j]):
                 cam[j] += weight*target_output[j, i]
 
-        # put cam through ReLU
         cam = torch.max(cam, torch.zeros(cam.shape))
-        # normalize to [0,1]
         for i in range(cam.shape[0]):
             cam[i] = (cam[i] - torch.min(cam[i]))/(torch.max(cam[i])-torch.min(cam[i]))
 
-        # resize to input image size
         if self.mode == "2D":
             cam = torch.nn.functional.interpolate(cam.unsqueeze(1), x.shape[-2:], mode="bilinear")
         else:
@@ -459,7 +430,6 @@ class GuidedGradCAM():
             Return network predictions and GuidedGradCAM maps of same dimension as x
     """
     def __init__(self, model, target_layer=None, section_names=None, mode="3D", adaptive_layer=None):
-        # assert that model is valid
         if section_names is None:
             section_names = [name for name, _ in model._modules.items()]
             assert len(section_names) == 2, ("Model does not have two separate sections. Instead has: {}."
