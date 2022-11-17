@@ -42,7 +42,7 @@ ps.saliency_plot(input_batch, maps, mode="2D", alpha=0.8)
 ````
 
 For more detailed examples check out the following notebooks
-* [2D example](./examples/minimal_example.ipynb)
+* [2D example](./examples/2d_example.ipynb)
 * 3D example
 
 # How can this be useful?
